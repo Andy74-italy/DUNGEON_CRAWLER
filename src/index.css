@@ -1,0 +1,271 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=Cinzel+Decorative:wght@400;700&display=swap');
+
+/* ============================================
+   DESIGN TOKENS – Dark Fantasy Dungeon Crawler
+   ============================================ */
+@theme {
+  /* --- Dungeon Palette (cool dark tones) --- */
+  --color-dungeon-950: hsl(220, 30%, 4%);
+  --color-dungeon-900: hsl(222, 28%, 8%);
+  --color-dungeon-800: hsl(224, 25%, 13%);
+  --color-dungeon-700: hsl(226, 22%, 18%);
+  --color-dungeon-600: hsl(228, 20%, 24%);
+  --color-dungeon-500: hsl(230, 18%, 32%);
+  --color-dungeon-400: hsl(232, 16%, 45%);
+  --color-dungeon-300: hsl(234, 14%, 60%);
+  --color-dungeon-200: hsl(236, 12%, 75%);
+  --color-dungeon-100: hsl(238, 10%, 90%);
+
+  /* --- Blood Red (danger, combat, defeat) --- */
+  --color-blood-950: hsl(0, 70%, 8%);
+  --color-blood-900: hsl(2, 72%, 14%);
+  --color-blood-800: hsl(4, 75%, 22%);
+  --color-blood-700: hsl(6, 78%, 32%);
+  --color-blood-600: hsl(8, 80%, 42%);
+  --color-blood-500: hsl(10, 82%, 52%);
+  --color-blood-400: hsl(12, 85%, 62%);
+  --color-blood-300: hsl(14, 88%, 72%);
+  --color-blood-200: hsl(16, 90%, 82%);
+
+  /* --- Arcane Purple (magic, LLM, mage) --- */
+  --color-arcane-950: hsl(270, 50%, 5%);
+  --color-arcane-900: hsl(268, 52%, 10%);
+  --color-arcane-800: hsl(266, 55%, 16%);
+  --color-arcane-700: hsl(264, 58%, 25%);
+  --color-arcane-600: hsl(262, 62%, 36%);
+  --color-arcane-500: hsl(260, 68%, 50%);
+  --color-arcane-400: hsl(258, 72%, 63%);
+  --color-arcane-300: hsl(256, 78%, 75%);
+  --color-arcane-200: hsl(254, 82%, 85%);
+
+  /* --- Gold (victory, loot, strong hit) --- */
+  --color-gold-950: hsl(35, 80%, 6%);
+  --color-gold-900: hsl(36, 82%, 12%);
+  --color-gold-800: hsl(37, 85%, 20%);
+  --color-gold-700: hsl(38, 88%, 30%);
+  --color-gold-600: hsl(40, 90%, 40%);
+  --color-gold-500: hsl(42, 92%, 52%);
+  --color-gold-400: hsl(44, 90%, 62%);
+  --color-gold-300: hsl(46, 88%, 72%);
+  --color-gold-200: hsl(48, 85%, 82%);
+
+  /* --- Ember Orange (weak hit, warning) --- */
+  --color-ember-600: hsl(22, 85%, 42%);
+  --color-ember-500: hsl(24, 90%, 54%);
+  --color-ember-400: hsl(26, 88%, 64%);
+
+  /* --- Poison Green (conditions, hazards) --- */
+  --color-poison-700: hsl(130, 45%, 22%);
+  --color-poison-500: hsl(128, 50%, 38%);
+  --color-poison-400: hsl(126, 55%, 50%);
+
+  /* --- Typography --- */
+  --font-display: 'Cinzel', 'Georgia', serif;
+  --font-decorative: 'Cinzel Decorative', 'Cinzel', serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* --- Spacing & Radius --- */
+  --radius-dungeon: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-modal: 1rem;
+
+  /* --- Animations --- */
+  --animate-flicker: flicker 3s infinite;
+  --animate-glow-pulse: glow-pulse 2s ease-in-out infinite;
+  --animate-roll-in: roll-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-fade-up: fade-up 0.5s ease-out;
+  --animate-flash-red: flash-red 0.6s ease-out;
+  --animate-flash-gold: flash-gold 0.6s ease-out;
+  --animate-slide-in-right: slide-in-right 0.35s ease-out;
+
+  @keyframes flicker {
+    0%, 100% { opacity: 1; filter: brightness(1); }
+    8%  { opacity: 0.92; filter: brightness(0.88); }
+    15% { opacity: 0.98; filter: brightness(1.02); }
+    22% { opacity: 0.88; filter: brightness(0.82); }
+    30% { opacity: 1;    filter: brightness(1); }
+    45% { opacity: 0.95; filter: brightness(0.92); }
+    60% { opacity: 1;    filter: brightness(1.05); }
+    75% { opacity: 0.93; filter: brightness(0.90); }
+    90% { opacity: 1;    filter: brightness(1); }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 8px 1px hsl(42 92% 52% / 0.3); }
+    50%       { box-shadow: 0 0 18px 4px hsl(42 92% 52% / 0.55); }
+  }
+
+  @keyframes roll-in {
+    from { transform: scale(0.4) rotate(-15deg); opacity: 0; }
+    to   { transform: scale(1) rotate(0deg);     opacity: 1; }
+  }
+
+  @keyframes fade-up {
+    from { transform: translateY(12px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  @keyframes flash-red {
+    0%   { background-color: hsl(4 75% 22% / 0.6); }
+    50%  { background-color: hsl(8 80% 42% / 0.8); }
+    100% { background-color: transparent; }
+  }
+
+  @keyframes flash-gold {
+    0%   { background-color: hsl(38 85% 20% / 0.5); }
+    50%  { background-color: hsl(42 92% 52% / 0.6); }
+    100% { background-color: transparent; }
+  }
+
+  @keyframes slide-in-right {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  background-color: var(--color-dungeon-950);
+  color: var(--color-dungeon-100);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-dungeon-900);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-dungeon-600);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-dungeon-400);
+}
+
+/* Selection color */
+::selection {
+  background: hsl(260 62% 36% / 0.5);
+  color: var(--color-dungeon-100);
+}
+
+/* ============================================
+   GLASSMORPHISM UTILITIES
+   ============================================ */
+.glass {
+  background: hsl(222 28% 8% / 0.7);
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  border: 1px solid hsl(228 20% 24% / 0.5);
+}
+
+.glass-light {
+  background: hsl(222 28% 12% / 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid hsl(228 20% 30% / 0.4);
+}
+
+.glass-dark {
+  background: hsl(220 30% 4% / 0.85);
+  backdrop-filter: blur(16px) saturate(2);
+  -webkit-backdrop-filter: blur(16px) saturate(2);
+  border: 1px solid hsl(228 20% 18% / 0.6);
+}
+
+/* ============================================
+   CONDITION COLOR UTILITIES
+   ============================================ */
+.condition-healthy  { --condition-color: var(--color-poison-400); }
+.condition-wounded  { --condition-color: var(--color-ember-500); }
+.condition-exhausted { --condition-color: var(--color-gold-500); }
+.condition-disabled { --condition-color: var(--color-blood-600); }
+
+/* Role accent colors */
+.role-warrior { --role-color: hsl(210, 75%, 55%); }
+.role-rogue   { --role-color: hsl(148, 65%, 45%); }
+.role-mage    { --role-color: hsl(260, 70%, 60%); }
+.role-cleric  { --role-color: hsl(46, 90%, 55%); }
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+.font-display      { font-family: var(--font-display); }
+.font-decorative   { font-family: var(--font-decorative); }
+.font-body         { font-family: var(--font-body); }
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--color-gold-400), var(--color-gold-200), var(--color-gold-400));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-arcane {
+  background: linear-gradient(135deg, var(--color-arcane-400), var(--color-arcane-200), var(--color-arcane-400));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   GLOW BORDER UTILITIES
+   ============================================ */
+.border-glow-gold {
+  border-color: var(--color-gold-600);
+  box-shadow: 0 0 12px 2px hsl(42 92% 52% / 0.25),
+              inset 0 0 8px 1px hsl(42 92% 52% / 0.08);
+}
+
+.border-glow-blood {
+  border-color: var(--color-blood-700);
+  box-shadow: 0 0 12px 2px hsl(8 80% 42% / 0.3),
+              inset 0 0 8px 1px hsl(8 80% 42% / 0.1);
+}
+
+.border-glow-arcane {
+  border-color: var(--color-arcane-600);
+  box-shadow: 0 0 12px 2px hsl(260 62% 36% / 0.35),
+              inset 0 0 8px 1px hsl(260 62% 36% / 0.12);
+}
+
+.border-glow-poison {
+  border-color: var(--color-poison-700);
+  box-shadow: 0 0 10px 1px hsl(128 50% 38% / 0.3),
+              inset 0 0 6px 1px hsl(128 50% 38% / 0.1);
+}
+
+/* ============================================
+   BACKGROUND TEXTURE
+   ============================================ */
+.dungeon-bg {
+  background-color: var(--color-dungeon-950);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, hsl(260 50% 8% / 0.6) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, hsl(0 60% 8% / 0.4) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, hsl(220 30% 6% / 0.8) 0%, transparent 70%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: cover, cover, cover, 200px 200px;
+  background-attachment: fixed;
+}
