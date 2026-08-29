@@ -26,9 +26,13 @@ const FALLBACK_RESPONSE: LLMResponse = {
  * 4. Return hardcoded fallback response
  */
 export function parseJsonSafe(raw: string): LLMResponse {
+  // Diagnostic log — visible in browser DevTools console
+  console.log('[LLM Sanitizer] Raw response received:', raw.slice(0, 500));
+
   // Level 1: Direct parse
   try {
     const parsed = JSON.parse(raw);
+    console.log('[LLM Sanitizer] ✓ Parsed at Level 1 (direct)');
     return validateAndNormalize(parsed);
   } catch {
     // continue
@@ -42,6 +46,7 @@ export function parseJsonSafe(raw: string): LLMResponse {
 
   try {
     const parsed = JSON.parse(stripped);
+    console.log('[LLM Sanitizer] ✓ Parsed at Level 2 (stripped fences)');
     return validateAndNormalize(parsed);
   } catch {
     // continue
@@ -52,6 +57,7 @@ export function parseJsonSafe(raw: string): LLMResponse {
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[0]);
+      console.log('[LLM Sanitizer] ✓ Parsed at Level 3 (regex extract)');
       return validateAndNormalize(parsed);
     } catch {
       // continue
@@ -65,6 +71,7 @@ export function parseJsonSafe(raw: string): LLMResponse {
       // Attempt to close truncated JSON by appending }
       const fixed = partialMatch[0].replace(/,?\s*$/, '') + '}';
       const parsed = JSON.parse(fixed);
+      console.log('[LLM Sanitizer] ✓ Parsed at Level 3b (partial fix)');
       return validateAndNormalize(parsed);
     } catch {
       // continue
@@ -72,7 +79,7 @@ export function parseJsonSafe(raw: string): LLMResponse {
   }
 
   // Level 4: Fallback
-  console.warn('[LLM Sanitizer] Could not parse response, using fallback:', raw.slice(0, 200));
+  console.warn('[LLM Sanitizer] ✗ FALLBACK used. Full raw response:', raw);
   return { ...FALLBACK_RESPONSE };
 }
 

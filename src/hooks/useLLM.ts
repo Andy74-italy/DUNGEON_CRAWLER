@@ -1,6 +1,9 @@
 /**
  * hooks/useLLM.ts – React hook for all LLM call patterns.
  * Wraps the LLM client with store integration and loading/error state.
+ *
+ * FIX: Read all store values via getState() at call-time rather than capturing
+ * them in useCallback closures, to avoid stale language/settings values.
  */
 
 import { useCallback } from 'react';
@@ -14,24 +17,40 @@ import {
 import type { ActionResolutionResult } from '../engine/opse';
 
 export function useLLM() {
-  const store = useDungeonStore();
+  // We subscribe only to the loading/error flags for component re-renders.
+  const isLLMLoading = useDungeonStore((s) => s.isLLMLoading);
+  const llmError = useDungeonStore((s) => s.llmError);
 
-  const getClientSettings = useCallback(() => ({
-    provider: store.provider,
-    apiKey: store.apiKey,
-    model: store.model,
-    baseUrl: store.baseUrl,
-  }), [store.provider, store.apiKey, store.model, store.baseUrl]);
+  /**
+   * Read fresh state at call-time. This avoids stale closures for
+   * language, apiKey, provider, model, activeRoom, party, etc.
+   */
+  const getFreshState = useCallback(() => {
+    return useDungeonStore.getState();
+  }, []);
+
+  const getClientSettings = useCallback(() => {
+    const s = useDungeonStore.getState();
+    return {
+      provider: s.provider,
+      apiKey: s.apiKey,
+      model: s.model,
+      baseUrl: s.baseUrl,
+    };
+  }, []);
 
   /**
    * Mode A: Call LLM to narrate room entry.
    */
   const callRoomIntro = useCallback(async () => {
+    const store = getFreshState();
     const { activeRoom, party, dungeonTheme, totalRooms, language } = store;
     if (!activeRoom) return;
 
     store.setLLMLoading(true);
     store.setLLMError(null);
+    store.setNarrative(null);           // Clear stale narrative
+    store.setSuggestedActions([]);      // Clear stale suggestions
     store.setActiveMode('ROOM_INTRO');
 
     try {
@@ -43,11 +62,12 @@ export function useLLM() {
       store.setSuggestedActions(response.suggestedActions);
       store.setRoomSummary(response.roomSummary);
     } catch (err) {
+      console.error('[useLLM] callRoomIntro failed:', err);
       store.setLLMError(formatLLMError(err));
     } finally {
       store.setLLMLoading(false);
     }
-  }, [store, getClientSettings]);
+  }, [getFreshState, getClientSettings]);
 
   /**
    * Mode B: Call LLM to narrate action resolution.
@@ -57,11 +77,14 @@ export function useLLM() {
     engineResult: ActionResolutionResult,
     mechanicalConsequence: string
   ) => {
+    const store = getFreshState();
     const { activeRoom, party, dungeonTheme, language } = store;
     if (!activeRoom) return;
 
     store.setLLMLoading(true);
     store.setLLMError(null);
+    store.setNarrative(null);           // Clear stale narrative
+    store.setSuggestedActions([]);      // Clear stale suggestions
     store.setActiveMode('ACTION_RESOLUTION');
 
     try {
@@ -84,11 +107,12 @@ export function useLLM() {
         store.addToRoomLog(response.roomSummary);
       }
     } catch (err) {
+      console.error('[useLLM] callActionResolution failed:', err);
       store.setLLMError(formatLLMError(err));
     } finally {
       store.setLLMLoading(false);
     }
-  }, [store, getClientSettings]);
+  }, [getFreshState, getClientSettings]);
 
   /**
    * Mode C: Call LLM for dungeon end (Victory or Defeat).
@@ -98,6 +122,7 @@ export function useLLM() {
     survivingMembers: string[],
     fallenMembers: string[]
   ) => {
+    const store = getFreshState();
     const { dungeonTheme, language } = store;
 
     store.setLLMLoading(true);
@@ -116,13 +141,13 @@ export function useLLM() {
     } finally {
       store.setLLMLoading(false);
     }
-  }, [store, getClientSettings]);
+  }, [getFreshState, getClientSettings]);
 
   return {
     callRoomIntro,
     callActionResolution,
     callDungeonEnd,
-    isLoading: store.isLLMLoading,
-    error: store.llmError,
+    isLoading: isLLMLoading,
+    error: llmError,
   };
 }

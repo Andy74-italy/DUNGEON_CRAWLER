@@ -9,6 +9,7 @@ import { NarrativeSkeleton } from '../ui/Spinner';
 import { Button } from '../ui/Button';
 import { getSurvivors, getFallen } from '../../engine/conditions';
 import { useLLM } from '../../hooks/useLLM';
+import { useTranslations } from '../../i18n/translations';
 import { RotateCcw, Shield, Skull } from 'lucide-react';
 
 export function EndScreen() {
@@ -18,6 +19,7 @@ export function EndScreen() {
   const [endCalled, setEndCalled] = useState(false);
 
   const isVictory = store.gameStatus === 'VICTORY';
+  const t = useTranslations(store.language);
   const survivors = getSurvivors(store.party);
   const fallen = getFallen(store.party);
 
@@ -55,7 +57,7 @@ export function EndScreen() {
             'font-decorative text-5xl font-bold leading-tight',
             isVictory ? 'text-gradient-gold' : 'text-blood-300',
           ].join(' ')}>
-            {isVictory ? 'Victory!' : 'Defeat'}
+            {isVictory ? t.victoryTitle : t.defeatTitle}
           </h1>
 
           <p className="font-display text-dungeon-500 text-sm tracking-wide">
@@ -85,7 +87,7 @@ export function EndScreen() {
           {survivors.length > 0 && (
             <div className="glass-dark rounded-xl border border-poison-800/30 p-4 text-left">
               <p className="font-display text-[10px] font-semibold text-poison-500 uppercase tracking-widest mb-2">
-                ✓ Survivors
+                {t.survivors}
               </p>
               <div className="space-y-1">
                 {survivors.map((name) => (
@@ -97,7 +99,7 @@ export function EndScreen() {
           {fallen.length > 0 && (
             <div className="glass-dark rounded-xl border border-blood-900/30 p-4 text-left">
               <p className="font-display text-[10px] font-semibold text-blood-600 uppercase tracking-widest mb-2">
-                ✝ Fallen
+                {t.fallen}
               </p>
               <div className="space-y-1">
                 {fallen.map((name) => (
@@ -112,7 +114,7 @@ export function EndScreen() {
         {store.party.inventory.length > 0 && (
           <div className="glass rounded-xl border border-gold-900/30 p-4 text-left">
             <p className="font-display text-[10px] font-semibold text-gold-600 uppercase tracking-widest mb-2">
-              ◈ Loot Recovered
+              {t.lootRecovered}
             </p>
             <div className="flex flex-wrap gap-2">
               {store.party.inventory.map((item, i) => (
@@ -133,7 +135,7 @@ export function EndScreen() {
           onClick={handleNewGame}
           icon={<RotateCcw size={16} />}
         >
-          Begin a New Expedition
+          {t.newExpedition}
         </Button>
       </div>
     </div>

@@ -31,7 +31,7 @@ export async function callGemini(
     generationConfig: {
       response_mime_type: 'application/json',
       temperature: 0.8,
-      maxOutputTokens: 512,
+      maxOutputTokens: 2048,  // increased from 512 — reasoning models need more budget
     },
   };
 

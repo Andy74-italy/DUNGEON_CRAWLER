@@ -57,7 +57,7 @@ export async function callOpenAICompatible(
     ],
     response_format: { type: 'json_object' },
     temperature: 0.8,
-    max_tokens: 512,
+    max_tokens: 2048,   // 512 was too low for reasoning models (they spend tokens on internal thought)
   };
 
   const res = await fetch(url, {
@@ -73,12 +73,17 @@ export async function callOpenAICompatible(
   }
 
   const data = await res.json() as {
-    choices?: { message?: { content?: string } }[];
+    choices?: { message?: { content?: string }; finish_reason?: string }[];
     error?: { message?: string };
   };
 
   if (data.error) throw new Error(`${provider} error: ${data.error.message}`);
 
-  const text = data.choices?.[0]?.message?.content ?? '';
+  const choice = data.choices?.[0];
+  if (choice?.finish_reason === 'length') {
+    console.warn(`[LLM ${provider}] Response truncated (finish_reason=length). The model hit the token limit.`);
+  }
+
+  const text = choice?.message?.content ?? '';
   return parseJsonSafe(text);
 }

@@ -2,17 +2,19 @@
  * components/setup/SetupScreen.tsx – Game setup screen with party configuration.
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useDungeonStore } from '../../store';
 import { SettingsModal } from '../settings/SettingsModal';
+import { InfoModal } from '../ui/InfoModal';
 import { Button } from '../ui/Button';
 import { RoleBadge } from '../ui/Badge';
 import {
   generateDungeonNameSuggestion,
   generatePlotHook,
 } from '../../engine';
-import { Settings, Dices, Swords } from 'lucide-react';
+import { Settings, Dices, Swords, BookOpen, Info, Globe } from 'lucide-react';
 import type { CharacterRole } from '../../store/types';
+import { useTranslations } from '../../i18n/translations';
 
 const DEFAULT_NAMES: Record<CharacterRole, string> = {
   Warrior: 'Valen',
@@ -39,17 +41,47 @@ const ROLE_INVENTORIES: Record<CharacterRole, string[]> = {
 
 export function SetupScreen() {
   const store = useDungeonStore();
+  const setLanguage = useDungeonStore((s) => s.setLanguage);
+  const t = useTranslations(store.language);
 
   const [dungeonName, setDungeonName] = useState('');
   const [totalRooms, setTotalRooms] = useState<5 | 6 | 7>(6);
   const [partyNames, setPartyNames] = useState<Record<CharacterRole, string>>({ ...DEFAULT_NAMES });
   const [plotHint, setPlotHint] = useState<string>('');
+  const [infoModal, setInfoModal] = useState<'howToPlay' | 'credits' | null>(null);
+  const [showLangPicker, setShowLangPicker] = useState(false);
+  const langBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Close lang picker on click outside
+  useEffect(() => {
+    if (!showLangPicker) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langBtnRef.current && !langBtnRef.current.contains(e.target as Node)) {
+        setShowLangPicker(false);
+      }
+    };
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 0);
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showLangPicker]);
+
+  const handleLangChange = useCallback((lang: string) => {
+    setLanguage(lang);
+    setShowLangPicker(false);
+  }, [setLanguage]);
+
+  const LANG_FLAGS: Record<string, string> = { en: '🇬🇧', it: '🇮🇹', de: '🇩🇪', fr: '🇫🇷', es: '🇪🇸' };
+  const ALL_LANGS = ['en', 'it', 'de', 'fr', 'es'];
 
   const handleGenerateTheme = () => {
     const name = generateDungeonNameSuggestion();
     const hook = generatePlotHook();
     setDungeonName(name);
-    setPlotHint(`Objective: ${hook.objective} · Adversary: ${hook.adversary} · Reward: ${hook.reward}`);
+    setPlotHint(`${t.objectiveLabel}: ${hook.objective} · ${t.adversaryLabel}: ${hook.adversary} · ${t.rewardLabel}: ${hook.reward}`);
   };
 
   const handleStart = () => {
@@ -60,15 +92,81 @@ export function SetupScreen() {
 
   return (
     <div className="dungeon-bg min-h-screen flex flex-col items-center justify-center px-4 py-12">
-      {/* Settings button */}
-      <button
-        id="setup-settings-btn"
-        onClick={() => store.setSettingsOpen(true)}
-        className="fixed top-4 right-4 p-2.5 rounded-lg glass border border-dungeon-700/40 text-dungeon-400 hover:text-dungeon-200 hover:border-dungeon-600 transition-all"
-        title="AI Settings"
-      >
-        <Settings size={16} />
-      </button>
+      {/* Top-right buttons: language, how to play, credits, settings */}
+      <div className="fixed top-4 right-4 flex items-center gap-1.5 z-10">
+        {/* Language picker */}
+        <div className="relative">
+          <button
+            ref={langBtnRef}
+            id="setup-lang-btn"
+            onClick={() => setShowLangPicker((v) => !v)}
+            className="p-2.5 rounded-lg glass border border-dungeon-700/40 text-dungeon-400 hover:text-dungeon-200 hover:border-dungeon-600 transition-all flex items-center gap-1"
+            title={t.narrativeLanguage}
+          >
+            <Globe size={14} />
+            <span className="text-xs font-mono">{LANG_FLAGS[store.language] ?? '🌐'}</span>
+          </button>
+        </div>
+        <button
+          id="setup-howtoplay-btn"
+          onClick={() => setInfoModal('howToPlay')}
+          className="p-2.5 rounded-lg glass border border-dungeon-700/40 text-dungeon-400 hover:text-dungeon-200 hover:border-dungeon-600 transition-all"
+          title={t.howToPlay}
+        >
+          <BookOpen size={16} />
+        </button>
+        <button
+          id="setup-credits-btn"
+          onClick={() => setInfoModal('credits')}
+          className="p-2.5 rounded-lg glass border border-dungeon-700/40 text-dungeon-400 hover:text-dungeon-200 hover:border-dungeon-600 transition-all"
+          title={t.credits}
+        >
+          <Info size={16} />
+        </button>
+        <button
+          id="setup-settings-btn"
+          onClick={() => store.setSettingsOpen(true)}
+          className="p-2.5 rounded-lg glass border border-dungeon-700/40 text-dungeon-400 hover:text-dungeon-200 hover:border-dungeon-600 transition-all"
+          title={t.aiSettings}
+        >
+          <Settings size={16} />
+        </button>
+      </div>
+
+      {/* Language picker dropdown — rendered OUTSIDE z-10 toolbar to avoid stacking context issues */}
+      {showLangPicker && (() => {
+        const rect = langBtnRef.current?.getBoundingClientRect();
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: rect ? rect.bottom + 4 : 60,
+              right: rect ? window.innerWidth - rect.right : 16,
+              zIndex: 9999,
+            }}
+            className="glass border border-dungeon-600/50 rounded-xl shadow-2xl py-1.5 min-w-[120px]"
+          >
+            {ALL_LANGS.map((lang) => (
+              <button
+                key={lang}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleLangChange(lang);
+                }}
+                className={[
+                  'w-full flex items-center gap-2.5 px-3 py-1.5 text-sm transition-colors',
+                  store.language === lang
+                    ? 'text-gold-300 bg-dungeon-700/50'
+                    : 'text-dungeon-300 hover:text-dungeon-100 hover:bg-dungeon-800/50',
+                ].join(' ')}
+              >
+                <span>{LANG_FLAGS[lang]}</span>
+                <span className="uppercase font-mono text-xs">{lang}</span>
+              </button>
+            ))}
+          </div>
+        );
+      })()}
 
       <div className="w-full max-w-2xl space-y-8 animate-[fade-up_0.5s_ease-out]">
         {/* Title */}
@@ -77,7 +175,7 @@ export function SetupScreen() {
             Dungeon Crawler
           </h1>
           <p className="font-display text-dungeon-400 text-sm tracking-widest uppercase">
-            Powered by One Page Solo Engine
+            {t.setupSubtitle}
           </p>
           <div className="w-24 h-px bg-gradient-to-r from-transparent via-gold-700 to-transparent mx-auto" />
         </div>
@@ -85,13 +183,13 @@ export function SetupScreen() {
         {/* Dungeon Name */}
         <div className="glass rounded-xl border border-dungeon-700/40 p-6 space-y-4">
           <h2 className="font-display text-dungeon-300 text-sm font-semibold uppercase tracking-widest">
-            ⚔ Dungeon Configuration
+            {t.dungeonConfig}
           </h2>
 
           {/* Theme input */}
           <div>
             <label htmlFor="dungeon-name" className="block text-xs font-display text-dungeon-500 uppercase tracking-wider mb-2">
-              Dungeon Name / Theme
+              {t.dungeonNameLabel}
             </label>
             <div className="flex gap-2">
               <input
@@ -99,7 +197,7 @@ export function SetupScreen() {
                 type="text"
                 value={dungeonName}
                 onChange={(e) => setDungeonName(e.target.value)}
-                placeholder="e.g. Sunken Monastery of the Red Abbot"
+                placeholder={t.dungeonNamePlaceholder}
                 className="flex-1 bg-dungeon-900/80 border border-dungeon-700/60 rounded-lg px-3 py-2.5 text-sm text-dungeon-200 placeholder:text-dungeon-600 focus:outline-none focus:border-dungeon-500/80 font-body"
               />
               <Button
@@ -110,7 +208,7 @@ export function SetupScreen() {
                 icon={<Dices size={14} />}
                 title="Generate random theme"
               >
-                Roll
+                {t.rollTheme}
               </Button>
             </div>
             {plotHint && (
@@ -123,7 +221,7 @@ export function SetupScreen() {
           {/* Room count selector */}
           <div>
             <label className="block text-xs font-display text-dungeon-500 uppercase tracking-wider mb-2">
-              Dungeon Length
+              {t.dungeonLength}
             </label>
             <div className="flex gap-2">
               {([5, 6, 7] as const).map((n) => (
@@ -137,9 +235,9 @@ export function SetupScreen() {
                       : 'bg-dungeon-900/60 border-dungeon-700/40 text-dungeon-500 hover:border-dungeon-600 hover:text-dungeon-300',
                   ].join(' ')}
                 >
-                  {n} Rooms
+                  {n === 5 ? t.rooms5 : n === 6 ? t.rooms6 : t.rooms7}
                   <span className="block text-[9px] font-body font-normal mt-0.5 opacity-70">
-                    {n === 5 ? '~15 min' : n === 6 ? '~20 min' : '~30 min'}
+                    {n === 5 ? t.time15 : n === 6 ? t.time20 : t.time30}
                   </span>
                 </button>
               ))}
@@ -150,7 +248,7 @@ export function SetupScreen() {
         {/* Party names */}
         <div className="glass rounded-xl border border-dungeon-700/40 p-6 space-y-4">
           <h2 className="font-display text-dungeon-300 text-sm font-semibold uppercase tracking-widest">
-            🗡 Your Party
+            {t.yourParty}
           </h2>
 
           <div className="grid grid-cols-2 gap-3">
@@ -192,15 +290,29 @@ export function SetupScreen() {
           onClick={handleStart}
           icon={<Swords size={18} />}
         >
-          Enter the Dungeon
+          {t.enterDungeon}
         </Button>
 
         <p className="text-dungeon-700 text-xs text-center">
-          Configure your AI Dungeon Master via ⚙ Settings before starting.
+          {t.configureAiHint}
         </p>
       </div>
 
       <SettingsModal />
+      {infoModal && (
+        <InfoModal
+          isOpen={true}
+          onClose={() => setInfoModal(null)}
+          mode={infoModal}
+        />
+      )}
+      {showLangPicker && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowLangPicker(false)}
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 }

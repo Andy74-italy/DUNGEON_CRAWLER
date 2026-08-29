@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { Eye, EyeOff, Globe, Cpu, Zap } from 'lucide-react';
 import type { LLMProvider } from '../../store/types';
 import { WEBLLM_MODELS, isWebGPUAvailable } from '../../llm/providers/webllm';
+import { useTranslations } from '../../i18n/translations';
 
 const PROVIDERS: { id: LLMProvider; label: string; icon: string; defaultModel: string; needsKey: boolean; needsUrl: boolean }[] = [
   { id: 'gemini',      label: 'Google Gemini',    icon: '✦', defaultModel: 'gemini-2.0-flash',               needsKey: true,  needsUrl: false },
@@ -29,6 +30,7 @@ const LANGUAGES = [
 
 export function SettingsModal() {
   const store = useDungeonStore();
+  const t = useTranslations(store.language);
   const [showKey, setShowKey] = useState(false);
   const webGPUAvailable = isWebGPUAvailable();
 
@@ -46,7 +48,7 @@ export function SettingsModal() {
     <Modal
       isOpen={store.settingsOpen}
       onClose={() => store.setSettingsOpen(false)}
-      title="⚙ AI Dungeon Master Settings"
+      title={t.settingsTitle}
       size="lg"
     >
       <div className="space-y-5">
@@ -54,7 +56,7 @@ export function SettingsModal() {
         <div>
           <label className="block text-xs font-display font-semibold text-dungeon-400 uppercase tracking-widest mb-2">
             <Globe size={10} className="inline mr-1.5" />
-            Narrative Language
+            {t.narrativeLanguage}
           </label>
           <div className="flex flex-wrap gap-2">
             {LANGUAGES.map((lang) => (
@@ -78,7 +80,7 @@ export function SettingsModal() {
         <div>
           <label className="block text-xs font-display font-semibold text-dungeon-400 uppercase tracking-widest mb-2">
             <Cpu size={10} className="inline mr-1.5" />
-            AI Provider
+            {t.aiProvider}
           </label>
           <div className="grid grid-cols-2 gap-2">
             {PROVIDERS.map((prov) => {
@@ -116,7 +118,7 @@ export function SettingsModal() {
         {currentProvider?.needsKey && (
           <div>
             <label htmlFor="api-key-input" className="block text-xs font-display font-semibold text-dungeon-400 uppercase tracking-widest mb-2">
-              API Key
+              {t.apiKeyLabel}
             </label>
             <div className="relative">
               <input
@@ -138,7 +140,7 @@ export function SettingsModal() {
               </button>
             </div>
             <p className="text-dungeon-600 text-[10px] mt-1">
-              Stored locally in your browser. Never transmitted to any server other than the selected provider.
+              {t.keyPrivacyNote}
             </p>
           </div>
         )}
@@ -146,7 +148,7 @@ export function SettingsModal() {
         {/* Model selection */}
         <div>
           <label htmlFor="model-input" className="block text-xs font-display font-semibold text-dungeon-400 uppercase tracking-widest mb-2">
-            Model
+            {t.modelLabel}
           </label>
           {store.provider === 'webllm' ? (
             <select
@@ -175,7 +177,7 @@ export function SettingsModal() {
         {currentProvider?.needsUrl && (
           <div>
             <label htmlFor="base-url-input" className="block text-xs font-display font-semibold text-dungeon-400 uppercase tracking-widest mb-2">
-              Base URL
+              {t.baseUrlLabel}
             </label>
             <input
               id="base-url-input"
@@ -193,8 +195,7 @@ export function SettingsModal() {
           <div className="flex items-start gap-2.5 p-3 bg-arcane-950/40 border border-arcane-800/40 rounded-lg">
             <Zap size={14} className="text-arcane-400 shrink-0 mt-0.5" />
             <p className="text-arcane-400 text-xs leading-relaxed">
-              The model will be downloaded to your browser on first use (~1-2 GB). Subsequent sessions use the cached version.
-              No API key required.
+              {t.webllmNote}
             </p>
           </div>
         )}
@@ -206,7 +207,7 @@ export function SettingsModal() {
           className="w-full"
           onClick={() => store.setSettingsOpen(false)}
         >
-          Save & Close
+          {t.saveClose}
         </Button>
       </div>
     </Modal>

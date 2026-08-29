@@ -2,21 +2,26 @@
  * components/dungeon/ActionPanel.tsx – Player action input and suggested actions.
  */
 
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useDungeonStore } from '../../store';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import { Button } from '../ui/Button';
 import { OutcomeBadge } from '../ui/Badge';
+import { useTranslations } from '../../i18n/translations';
 import { Send, ChevronRight, Swords } from 'lucide-react';
+import type React from 'react';
 
 export function ActionPanel() {
+  const store = useDungeonStore();
   const {
     suggestedActions,
     isLLMLoading,
     activeRoom,
     gameStatus,
     lastRollResult,
-  } = useDungeonStore();
+    language,
+  } = store;
+  const t = useTranslations(language);
 
   const { handlePlayerAction, handleAdvanceRoom, isProcessing } = useGameLoop();
 
@@ -65,7 +70,7 @@ export function ActionPanel() {
           loading={isProcessing || isLLMLoading}
           icon={<ChevronRight size={18} />}
         >
-          Advance to Next Room
+          {t.advanceRoom}
         </Button>
       )}
 
@@ -73,7 +78,7 @@ export function ActionPanel() {
       {suggestedActions.length > 0 && !isRoomCleared && (
         <div className="space-y-2">
           <p className="font-display text-[10px] font-semibold text-dungeon-500 uppercase tracking-widest">
-            Suggested Tactics
+            {t.suggestedTactics}
           </p>
           <div className="flex flex-col gap-1.5">
             {suggestedActions.map((action, i) => (
@@ -103,7 +108,7 @@ export function ActionPanel() {
       {!isRoomCleared && (
         <div className="space-y-2">
           <p className="font-display text-[10px] font-semibold text-dungeon-500 uppercase tracking-widest">
-            Custom Action
+            {t.customAction}
           </p>
           <div className="flex gap-2">
             <textarea
@@ -113,7 +118,7 @@ export function ActionPanel() {
               onChange={(e) => setCustomAction(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isDisabled}
-              placeholder="Describe what the party does..."
+              placeholder={t.customActionPlaceholder}
               rows={2}
               className={[
                 'flex-1 resize-none rounded-lg px-3 py-2.5 text-sm leading-relaxed',
@@ -134,11 +139,11 @@ export function ActionPanel() {
               onClick={() => void handleSubmit(customAction)}
               icon={<Send size={14} />}
             >
-              Act
+              {t.actButton}
             </Button>
           </div>
           <p className="text-dungeon-600 text-[10px]">
-            Press Enter to submit · Shift+Enter for new line
+            {t.enterHint}
           </p>
         </div>
       )}
@@ -147,7 +152,7 @@ export function ActionPanel() {
       {suggestedActions.length === 0 && !isLLMLoading && !isRoomCleared && (
         <div className="flex items-center gap-2 text-dungeon-600 text-xs py-1">
           <Swords size={12} />
-          <span>Waiting for the scene to unfold...</span>
+          <span>{t.waitingScene}</span>
         </div>
       )}
     </div>

@@ -5,9 +5,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useDungeonStore } from '../../store';
 import { NarrativeSkeleton } from '../ui/Spinner';
+import { useTranslations } from '../../i18n/translations';
 import { ChevronDown, ChevronUp, ScrollText, AlertCircle } from 'lucide-react';
 
 export function NarrativePanel() {
+  const store = useDungeonStore();
   const {
     currentNarrative,
     currentRoomSummary,
@@ -15,7 +17,9 @@ export function NarrativePanel() {
     llmError,
     activeRoom,
     activeMode,
-  } = useDungeonStore();
+    language,
+  } = store;
+  const t = useTranslations(language);
 
   const [showLog, setShowLog] = useState(false);
   const narrativeRef = useRef<HTMLDivElement>(null);
@@ -38,8 +42,8 @@ export function NarrativePanel() {
             <div className="flex items-center gap-2 mb-4">
               <span className="text-arcane-400 text-xs font-display uppercase tracking-widest animate-pulse">
                 {activeMode === 'ROOM_INTRO'
-                  ? '◈ The Dungeon Master is setting the scene...'
-                  : '◈ The Dungeon Master is narrating...'}
+                  ? t.settingScene
+                  : t.narrating}
               </span>
             </div>
             <NarrativeSkeleton />
@@ -48,11 +52,11 @@ export function NarrativePanel() {
           <div className="flex flex-col items-start gap-3">
             <div className="flex items-center gap-2 text-blood-400">
               <AlertCircle size={16} />
-              <span className="text-sm font-medium">AI Dungeon Master Unavailable</span>
+              <span className="text-sm font-medium">{t.aiUnavailable}</span>
             </div>
             <p className="text-dungeon-400 text-sm leading-relaxed">{llmError}</p>
             <p className="text-dungeon-500 text-xs">
-              Check your API key and provider settings, then try again.
+              {t.aiUnavailableHint}
             </p>
           </div>
         ) : currentNarrative ? (
@@ -72,10 +76,10 @@ export function NarrativePanel() {
           <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
             <ScrollText size={28} className="text-dungeon-700" />
             <p className="text-dungeon-600 text-sm font-display">
-              Awaiting the Dungeon Master...
+              {t.awaitingDM}
             </p>
             <p className="text-dungeon-700 text-xs">
-              Configure your AI provider in settings, then enter the dungeon.
+              {t.awaitingHint}
             </p>
           </div>
         )}
@@ -90,7 +94,7 @@ export function NarrativePanel() {
           >
             <span className="flex items-center gap-2">
               <ScrollText size={12} />
-              ROOM HISTORY ({historyLog.length})
+              {t.roomHistory} ({historyLog.length})
             </span>
             {showLog ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>

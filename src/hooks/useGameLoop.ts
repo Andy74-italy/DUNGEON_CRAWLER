@@ -1,6 +1,8 @@
 /**
  * hooks/useGameLoop.ts – Main gameplay loop hook.
  * Orchestrates: player action → OPSE roll → condition damage → chaos factor → LLM call.
+ *
+ * FIX: Uses getState() at call-time to avoid stale closure issues.
  */
 
 import { useCallback, useState } from 'react';
@@ -17,8 +19,7 @@ import {
 } from '../engine/conditions';
 
 export function useGameLoop() {
-  const store = useDungeonStore();
-  const { callRoomIntro, callActionResolution, callDungeonEnd } = useLLM();
+  const { callActionResolution, callDungeonEnd } = useLLM();
   const [isProcessing, setIsProcessing] = useState(false);
 
   /**
@@ -26,6 +27,7 @@ export function useGameLoop() {
    * Full loop: roll → damage → CF update → store update → LLM call
    */
   const handlePlayerAction = useCallback(async (actionText: string) => {
+    const store = useDungeonStore.getState();
     if (isProcessing || store.isLLMLoading) return;
     setIsProcessing(true);
 
@@ -64,23 +66,22 @@ export function useGameLoop() {
       // 8. Call LLM for action resolution narration
       await callActionResolution(actionText, result, mechanicalConsequence);
 
-      // 9. On Strong Hit, automatically mark room as cleared (threat neutralized)
-      //    (for WeakHit/Miss, the GM narrative handles progression)
+      // 9. On Strong Hit, mark room as cleared
       if (result.outcome === 'StrongHit') {
         store.markRoomCleared();
-        // Update CF: StrongHit + room cleared → CF -1
+        // CF: StrongHit + room cleared → CF -1
         store.updateChaosFactor(-1);
       }
     } finally {
       setIsProcessing(false);
     }
-  }, [store, isProcessing, callActionResolution, callDungeonEnd]);
+  }, [isProcessing, callActionResolution, callDungeonEnd]);
 
   /**
    * Handle advancing to the next room.
-   * Called when the current room is cleared and the player chooses to move on.
    */
   const handleAdvanceRoom = useCallback(async () => {
+    const store = useDungeonStore.getState();
     if (isProcessing || store.isLLMLoading) return;
     setIsProcessing(true);
 
@@ -95,32 +96,23 @@ export function useGameLoop() {
         await callDungeonEnd('VICTORY', survivors, fallen);
       } else {
         store.advanceToNextRoom();
-        // Room intro LLM call triggered by useEffect in GameScreen
-        await callRoomIntro();
+        // Room intro is triggered by the useEffect in GameScreen watching currentRoomIndex
       }
     } finally {
       setIsProcessing(false);
     }
-  }, [store, isProcessing, callRoomIntro, callDungeonEnd]);
-
-  /**
-   * Manually trigger a room intro (called on room entry).
-   */
-  const handleRoomEntry = useCallback(async () => {
-    await callRoomIntro();
-  }, [callRoomIntro]);
+  }, [isProcessing, callDungeonEnd]);
 
   /**
    * Start a new game session.
    */
   const handleNewGame = useCallback(() => {
-    store.resetGame();
-  }, [store]);
+    useDungeonStore.getState().resetGame();
+  }, []);
 
   return {
     handlePlayerAction,
     handleAdvanceRoom,
-    handleRoomEntry,
     handleNewGame,
     isProcessing,
   };

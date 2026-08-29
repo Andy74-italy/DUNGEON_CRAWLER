@@ -5,6 +5,7 @@
 import { useEffect } from 'react';
 import { useDungeonStore } from '../../store';
 import { OutcomeBadge } from '../ui/Badge';
+import { useTranslations } from '../../i18n/translations';
 
 const OUTCOME_COLORS: Record<string, { face: string; glow: string; label: string }> = {
   StrongHit: {
@@ -29,7 +30,14 @@ const DICE_FACES: Record<number, string> = {
 };
 
 export function DiceRollModal() {
-  const { showDiceModal, lastRollResult, hideDiceRollModal } = useDungeonStore();
+  const { showDiceModal, lastRollResult, hideDiceRollModal, language } = useDungeonStore();
+  const t = useTranslations(language);
+
+  const OUTCOME_FLAVORS: Record<string, string> = {
+    StrongHit: t.strongHitFlavor,
+    WeakHit: t.weakHitFlavor,
+    Miss: t.missFlavor,
+  };
 
   // Auto-dismiss after 2.5s
   useEffect(() => {
@@ -42,6 +50,7 @@ export function DiceRollModal() {
 
   const { outcome, roll } = lastRollResult;
   const colors = OUTCOME_COLORS[outcome];
+  const flavor = OUTCOME_FLAVORS[outcome];
 
   return (
     <div
@@ -73,7 +82,7 @@ export function DiceRollModal() {
         {/* Roll number */}
         <div className="text-center space-y-2">
           <p className="font-display text-sm text-dungeon-400 uppercase tracking-widest">
-            You rolled
+            {t.youRolled}
           </p>
           <p className={['font-decorative text-5xl font-bold', colors.face].join(' ')}>
             {roll}
@@ -85,7 +94,7 @@ export function DiceRollModal() {
 
         {/* Flavor text */}
         <p className="text-dungeon-500 text-xs italic text-center">
-          {colors.label}
+          {flavor}
         </p>
       </div>
     </div>
