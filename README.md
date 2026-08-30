@@ -6,9 +6,9 @@ A lightweight, web-based solo dungeon crawler featuring a fixed 4-character part
 
 ## 🎥 Demo
 
-https://github.com/Andy74-italy/DUNGEON_CRAWLER/blob/main/Demo-ITA.mp4
+![Demo ITA](./Demo-ITA.mp4)
 
-*If the video above doesn't play, [click here to view it directly](https://github.com/Andy74-italy/DUNGEON_CRAWLER/blob/main/Demo-ITA.mp4).*
+*If the video above doesn't play, [click here to view it directly](./Demo-ITA.mp4).*
 
 ---
 
