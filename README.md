@@ -6,9 +6,9 @@ A lightweight, web-based solo dungeon crawler featuring a fixed 4-character part
 
 ## 🎥 Demo
 
-![Demo Video ITA](./Demo-ITA.mp4)
+<video src="Demo-ITA.mp4" autoplay loop muted playsinline controls width="100%"></video>
 
-*If the video doesn't play automatically in your preview, [click here to watch the demo](./Demo-ITA.mp4).*
+*If the video above doesn't play, [click here to view it directly](./Demo-ITA.mp4).*
 
 ---
 
