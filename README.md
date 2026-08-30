@@ -4,6 +4,12 @@ A lightweight, web-based solo dungeon crawler featuring a fixed 4-character part
 
 ---
 
+## 🎥 Demo
+
+<video src="./Demo-ITA.mp4" controls="controls" width="100%"></video>
+
+---
+
 ## ✨ Features
 
 - **Solo Party Play:** Control a balanced party of 4 adventurers (Warrior, Rogue, Mage, Cleric) through procedural dungeon runs in 20–30 minute sessions.
